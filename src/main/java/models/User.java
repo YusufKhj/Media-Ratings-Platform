@@ -8,7 +8,7 @@ public class User {
     private String username;
     private String password; // jetzt für JSON Input
 
-    public User() {} // Jackson braucht Default-Konstruktor
+    public User() {}
 
     public User(int id, String username, String password) {
         this.id = id;

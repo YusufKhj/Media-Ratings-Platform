@@ -4,6 +4,9 @@ import com.sun.net.httpserver.HttpExchange;
 import controllers.UserRegisterController;
 import controllers.UserLoginController;
 import controllers.MediaCreateController;
+import utils.JsonResponse;
+import utils.TokenManager;
+
 import java.io.IOException;
 
 public class Router {
@@ -13,23 +16,55 @@ public class Router {
     private final MediaCreateController mediaCreateController = new MediaCreateController();
 
     public void route(HttpExchange exchange) throws IOException {
+        System.out.println("=====================================");
+        System.out.println("===> ROUTER HAT EINE ANFRAGE ERHALTEN! <===");
+        System.out.println("Method: " + exchange.getRequestMethod());
+        System.out.println("Path: " + exchange.getRequestURI().getPath());
+        System.out.println("=====================================");
+
         String path = exchange.getRequestURI().getPath().trim();
         String method = exchange.getRequestMethod();
 
-        // User Endpoints
+        // Public endpoints (kein Auth erforderlich)
         if (path.equals("/api/users/register") && method.equals("POST")) {
             userRegisterController.handle(exchange);
-        } else if (path.equals("/api/users/login") && method.equals("POST")) {
-            userLoginController.handle(exchange);
-
-            // Media Endpoints
-        } else if (path.equals("/api/media") && method.equals("POST")) {
-            mediaCreateController.handle(exchange);
-
-        } else {
-            // 404 für alles andere
-            exchange.sendResponseHeaders(404, -1);
-            exchange.close();
+            return;
         }
+
+        if (path.equals("/api/users/login") && method.equals("POST")) {
+            userLoginController.handle(exchange);
+            return;
+        }
+
+        // Protected endpoints (Auth erforderlich)
+        String authHeader = exchange.getRequestHeaders().getFirst("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            System.out.println("Auth fehlgeschlagen: Kein Authorization Header");
+            var errorResponse = new Object() {
+                public final String error = "Unauthorized - Missing token";
+            };
+            JsonResponse.send(exchange, 401, errorResponse);
+            return;
+        }
+
+        String token = authHeader.substring(7);
+        if (!TokenManager.isValid(token)) {
+            System.out.println("Auth fehlgeschlagen: Ungültiger Token");
+            var errorResponse = new Object() {
+                public final String error = "Unauthorized - Invalid token";
+            };
+            JsonResponse.send(exchange, 401, errorResponse);
+            return;
+        }
+
+        // Protected routes
+        if (path.equals("/api/media") && method.equals("POST")) {
+            mediaCreateController.handle(exchange);
+            return;
+        }
+
+        // 404 für alle anderen Pfade
+        System.out.println("404: Route nicht gefunden");
+        JsonResponse.sendNotFound(exchange);
     }
 }

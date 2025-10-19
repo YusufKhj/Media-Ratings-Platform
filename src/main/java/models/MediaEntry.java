@@ -18,7 +18,6 @@ public class MediaEntry {
     private int ageRestriction;
     private int creatorId;
 
-    // ----- Konstruktoren -----
     public MediaEntry() {
     }
 

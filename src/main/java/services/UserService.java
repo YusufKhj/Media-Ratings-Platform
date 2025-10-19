@@ -2,24 +2,30 @@ package services;
 
 import models.User;
 import utils.DbUtil;
+import utils.HashUtil;
+import utils.TokenManager;
 
-import java.sql.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class UserService {
-    private final Map<String, String> tokenMap = new HashMap<>();
+
 
     public User register(String username, String password) {
-        try (Connection conn = DbUtil.getConnection()) {
-            String sql = "INSERT INTO users(username, password) VALUES(?, ?) RETURNING id";
-            PreparedStatement ps = conn.prepareStatement(sql);
+        String sql = "INSERT INTO users(username, password) VALUES(?, ?) RETURNING uuid";
+        try (Connection conn = DbUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            String hashedPassword = HashUtil.hashPassword(password);
+
             ps.setString(1, username);
-            ps.setString(2, password);
+            ps.setString(2, hashedPassword);
+
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                return new User(rs.getInt("id"), username, password);
+                return new User(rs.getInt("uuid"), username, null);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -28,39 +34,21 @@ public class UserService {
     }
 
     public String login(String username, String password) {
-        try (Connection conn = DbUtil.getConnection()) {
-            String sql = "SELECT * FROM users WHERE username=? AND password=?";
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setString(1, username);
-            ps.setString(2, password);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                String token = username + "-" + UUID.randomUUID();
-                tokenMap.put(token, username);
-                return token;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+        String sql = "SELECT * FROM users WHERE username=?";
+        try (Connection conn = DbUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-    public boolean isTokenValid(String token) {
-        return tokenMap.containsKey(token);
-    }
-
-    public String getUsernameByToken(String token) {
-        return tokenMap.get(token);
-    }
-
-    public User getProfile(String username) {
-        try (Connection conn = DbUtil.getConnection()) {
-            String sql = "SELECT * FROM users WHERE username=?";
-            PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, username);
             ResultSet rs = ps.executeQuery();
+
             if (rs.next()) {
-                return new User(rs.getInt("id"), rs.getString("username"), rs.getString("password"));
+                String storedHash = rs.getString("password");
+
+                String enteredPasswordHash = HashUtil.hashPassword(password);
+
+                if (storedHash.equals(enteredPasswordHash)) {
+                    return TokenManager.generateToken(username);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();

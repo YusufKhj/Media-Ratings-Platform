@@ -11,7 +11,9 @@ public class MediaCreateController {
     private final MediaService mediaService = new MediaService();
 
     public void handle(HttpExchange exchange) throws IOException {
-        MediaEntry media = JsonUtil.fromJson(exchange.getRequestBody(), MediaEntry.class);
+        String requestBody = new String(exchange.getRequestBody().readAllBytes());
+        MediaEntry media = JsonUtil.fromJson(requestBody, MediaEntry.class); // <-- Jetzt aus dem String lesen
+
         MediaEntry created = mediaService.createMedia(media);
         JsonResponse.send(exchange, 201, created);
     }

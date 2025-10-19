@@ -11,12 +11,22 @@ public class UserLoginController {
     private final UserService userService = new UserService();
 
     public void handle(HttpExchange exchange) throws IOException {
-        User user = JsonUtil.fromJson(exchange.getRequestBody(), User.class);
+        String requestBody = new String(exchange.getRequestBody().readAllBytes());
+
+        User user = JsonUtil.fromJson(requestBody, User.class);
+
         String token = userService.login(user.getUsername(), user.getPassword());
+
         if (token != null) {
-            JsonResponse.send(exchange, 200, new Object() { public String Token = token; });
+            var response = new Object() {
+                public final String Token = token;
+            };
+            JsonResponse.send(exchange, 200, response);
         } else {
-            JsonResponse.send(exchange, 401, new Object() { public String error = "Login failed"; });
+            var errorResponse = new Object() {
+                public final String error = "Invalid username or password";
+            };
+            JsonResponse.send(exchange, 401, errorResponse);
         }
     }
 }
