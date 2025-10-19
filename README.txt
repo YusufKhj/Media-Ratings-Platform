@@ -62,8 +62,8 @@ Content-Type: application/json
 Body (Beispiel):
 
 {
-  "username": "max",
-  "password": "password123"
+    "username": "max",
+    "password": "password123"
 }
 
 
@@ -76,8 +76,8 @@ Methode: POST
 Body (Beispiel):
 
 {
-  "username": "max",
-  "password": "password123"
+    "username": "max",
+    "password": "password123"
 }
 
 
@@ -99,11 +99,11 @@ Authorization: Bearer <Dein Token> (Kopiere den Token aus der Login-Antwort)
 Body (Beispiel):
 
 {
-  "title": "StarWars",
-  "description": "Sci-Fi, Action",
-  "mediaType": "MOVIE",
-  "releaseYear": 1977,
-  "genres": ["Sci-Fi", "Action"],
-  "ageRestriction": 12,
-  "creatorId": 1
+    "title": "StarWars",
+    "description": "Sci-Fi, Action",
+    "mediaType": "MOVIE",
+    "releaseYear": 1977,
+    "genres": ["Sci-Fi", "Action"],
+    "ageRestriction": 12,
+    "creatorId": 1
 }

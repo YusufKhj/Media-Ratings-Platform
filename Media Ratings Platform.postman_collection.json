@@ -16,7 +16,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "max-1ccab80a-c114-4f80-8053-60510bbbbd66",
+							"value": "yusuf-6a537a8b-3d4e-48f1-b738-4f061f754d32",
 							"type": "string"
 						}
 					]
@@ -31,7 +31,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"title\": \"StarWars\",\r\n  \"description\": \"Sci-Fi, Action\",\r\n  \"mediaType\": \"MOVIE\",\r\n  \"releaseYear\": 1977,\r\n  \"genres\": [\"Sci-Fi\", \"Action\"],\r\n  \"ageRestriction\": 12,\r\n  \"creatorId\": 1\r\n}",
+					"raw": "{\r\n    \"title\": \"StarWars\",\r\n    \"description\": \"Sci-Fi, Action\",\r\n    \"mediaType\": \"MOVIE\";\r\n    \"releaseYear\": 1977,\r\n    \"genres\": [\"Sci-Fi\", \"Action\"],\r\n    \"ageRestriction\": 12,\r\n    \"creatorId\": 1\r\n\r\n}\r\n{\r\n  \"title\": \"StarWas\",\r\n  \"description\": \"Sci-Fi, Action\",\r\n  \"mediaType\": \"MOVIE\",\r\n  \"releaseYear\": 1977,\r\n  \"genres\": [\"Sci-Fi\", \"Action\"],\r\n  \"ageRestriction\": 12,\r\n  \"creatorId\": 1\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -140,7 +140,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"username\": \"max\",\n  \"password\": \"password123\"\n}\n\n",
+					"raw": "{\n    \"username\": \"max\",\n    \"password\": \"password123\"\n}\n",
 					"options": {
 						"raw": {
 							"language": "json"
