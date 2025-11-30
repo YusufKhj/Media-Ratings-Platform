@@ -32,6 +32,89 @@ public class MediaService {
         }
         return null;
     }
+    public MediaEntry updateMedia(MediaEntry updateData, int userId) {
+        String selectSql = "SELECT * FROM media_entries WHERE uuid=?";
+        String updateSql = "UPDATE media_entries SET title=?, description=?, media_type=?, release_year=?, genres=?, age_restriction=? WHERE uuid=? RETURNING *";
+
+        try (Connection conn = DbUtil.getConnection();
+             PreparedStatement selectPs = conn.prepareStatement(selectSql)) {
+
+            // Prüfen, ob Media existiert
+            selectPs.setInt(1, updateData.getId());
+            ResultSet rs = selectPs.executeQuery();
+            if (!rs.next()) {
+                System.out.println("Media not found");
+                return null;
+            }
+
+            MediaEntry existing = mapResultSetToMedia(rs);
+
+            // Prüfen, ob der User der Creator ist
+            if (existing.getCreatorId() != userId) {
+                System.out.println("Forbidden: User is not the creator");
+                return null;
+            }
+
+            // Update
+            try (PreparedStatement updatePs = conn.prepareStatement(updateSql)) {
+                updatePs.setString(1, updateData.getTitle() != null ? updateData.getTitle() : existing.getTitle());
+                updatePs.setString(2, updateData.getDescription() != null ? updateData.getDescription() : existing.getDescription());
+                updatePs.setString(3, updateData.getMediaType() != null ? updateData.getMediaType().name() : existing.getMediaType().name());
+                updatePs.setInt(4, updateData.getReleaseYear() > 0 ? updateData.getReleaseYear() : existing.getReleaseYear());
+                updatePs.setArray(5, updateData.getGenres() != null ? conn.createArrayOf("text", updateData.getGenres().toArray()) : conn.createArrayOf("text", existing.getGenres().toArray()));
+                updatePs.setInt(6, updateData.getAgeRestriction() > 0 ? updateData.getAgeRestriction() : existing.getAgeRestriction());
+                updatePs.setInt(7, updateData.getId());
+
+                ResultSet updatedRs = updatePs.executeQuery();
+                if (updatedRs.next()) {
+                    return mapResultSetToMedia(updatedRs);
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    // Media löschen
+    public boolean deleteMedia(int mediaId, int userId) {
+        String selectSql = "SELECT * FROM media_entries WHERE uuid=?";
+        String deleteSql = "DELETE FROM media_entries WHERE uuid=?";
+
+        try (Connection conn = DbUtil.getConnection();
+             PreparedStatement selectPs = conn.prepareStatement(selectSql)) {
+
+            // Prüfen, ob Media existiert
+            selectPs.setInt(1, mediaId);
+            ResultSet rs = selectPs.executeQuery();
+            if (!rs.next()) {
+                System.out.println("Media not found");
+                return false;
+            }
+
+            MediaEntry existing = mapResultSetToMedia(rs);
+
+            // Prüfen, ob der User der Creator ist
+            if (existing.getCreatorId() != userId) {
+                System.out.println("Forbidden: User is not the creator");
+                return false;
+            }
+
+            // Delete ausführen
+            try (PreparedStatement deletePs = conn.prepareStatement(deleteSql)) {
+                deletePs.setInt(1, mediaId);
+                int affected = deletePs.executeUpdate();
+                return affected > 0;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
 
 
     // Hilfsmethode

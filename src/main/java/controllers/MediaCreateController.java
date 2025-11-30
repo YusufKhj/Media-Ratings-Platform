@@ -12,7 +12,7 @@ public class MediaCreateController {
 
     public void handle(HttpExchange exchange) throws IOException {
         String requestBody = new String(exchange.getRequestBody().readAllBytes());
-        MediaEntry media = JsonUtil.fromJson(requestBody, MediaEntry.class); // <-- Jetzt aus dem String lesen
+        MediaEntry media = JsonUtil.fromJson(requestBody, MediaEntry.class); //
 
         MediaEntry created = mediaService.createMedia(media);
         JsonResponse.send(exchange, 201, created);

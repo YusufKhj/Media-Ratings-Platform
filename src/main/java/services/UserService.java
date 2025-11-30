@@ -4,6 +4,7 @@ import models.User;
 import utils.DbUtil;
 import utils.HashUtil;
 import utils.TokenManager;
+import utils.UserManager;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -43,11 +44,16 @@ public class UserService {
 
             if (rs.next()) {
                 String storedHash = rs.getString("password");
+                int userId = rs.getInt("uuid");
 
                 String enteredPasswordHash = HashUtil.hashPassword(password);
 
                 if (storedHash.equals(enteredPasswordHash)) {
-                    return TokenManager.generateToken(username);
+                    String token = TokenManager.generateToken(username);
+
+                    UserManager.addToken(token, userId);
+
+                    return token;
                 }
             }
         } catch (SQLException e) {

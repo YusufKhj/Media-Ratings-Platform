@@ -4,6 +4,8 @@ import com.sun.net.httpserver.HttpExchange;
 import controllers.UserRegisterController;
 import controllers.UserLoginController;
 import controllers.MediaCreateController;
+import controllers.MediaUpdateController;
+import controllers.MediaDeleteController;
 import utils.JsonResponse;
 import utils.TokenManager;
 
@@ -14,6 +16,8 @@ public class Router {
     private final UserRegisterController userRegisterController = new UserRegisterController();
     private final UserLoginController userLoginController = new UserLoginController();
     private final MediaCreateController mediaCreateController = new MediaCreateController();
+    private final MediaUpdateController mediaUpdateController = new MediaUpdateController();
+    private final MediaDeleteController mediaDeleteController = new MediaDeleteController();
 
     public void route(HttpExchange exchange) throws IOException {
         System.out.println("=====================================");
@@ -60,6 +64,18 @@ public class Router {
         // Protected routes
         if (path.equals("/api/media") && method.equals("POST")) {
             mediaCreateController.handle(exchange);
+            return;
+        }
+
+        // Update Media: PUT /api/media/{id}
+        if (path.startsWith("/api/media/") && method.equals("PUT")) {
+            mediaUpdateController.handle(exchange);
+            return;
+        }
+
+        // Delete Media: DELETE /api/media/{id}
+        if (path.startsWith("/api/media/") && method.equals("DELETE")) {
+            mediaDeleteController.handle(exchange);
             return;
         }
 
