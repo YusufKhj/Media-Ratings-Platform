@@ -263,4 +263,73 @@ public class RatingService {
 
         return ratings;
     }
+
+    public Map<String, Object> getAverageScore(int mediaId) {
+        // Erst prüfen ob Media existiert
+        String checkMediaSql = "SELECT uuid, title FROM media_entries WHERE uuid = ?";
+        String mediaTitle = null;
+
+        try (Connection conn = DbUtil.getConnection();
+             PreparedStatement checkPs = conn.prepareStatement(checkMediaSql)) {
+
+            checkPs.setInt(1, mediaId);
+            ResultSet rs = checkPs.executeQuery();
+
+            if (!rs.next()) {
+                // Media existiert nicht
+                return null;
+            }
+
+            mediaTitle = rs.getString("title");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        // Jetzt Average Score berechnen
+        String sql = """
+        SELECT 
+            COUNT(*) as total_ratings,
+            AVG(stars) as average_score
+        FROM ratings
+        WHERE media_id = ?
+    """;
+
+        try (Connection conn = DbUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, mediaId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                int totalRatings = rs.getInt("total_ratings");
+
+                // Wenn keine Ratings vorhanden sind
+                if (totalRatings == 0) {
+                    Map<String, Object> result = new HashMap<>();
+                    result.put("mediaId", mediaId);
+                    result.put("mediaTitle", mediaTitle);
+                    result.put("message", "Media does not have ratings");
+                    result.put("totalRatings", 0);
+                    return result;
+                }
+
+                double averageScore = rs.getDouble("average_score");
+
+                Map<String, Object> result = new HashMap<>();
+                result.put("mediaId", mediaId);
+                result.put("mediaTitle", mediaTitle);
+                result.put("averageScore", Math.round(averageScore * 10.0) / 10.0);
+                result.put("totalRatings", totalRatings);
+
+                return result;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
 }

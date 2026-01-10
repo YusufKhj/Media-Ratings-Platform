@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 public class MediaController {
 
@@ -25,16 +26,6 @@ public class MediaController {
         JsonResponse.send(exchange, 201, created);
     }
 
-    // ===================== LIST =====================
-    public void handleList(HttpExchange exchange) throws IOException {
-        try {
-            List<?> mediaList = mediaService.getAllMedia();
-            JsonResponse.send(exchange, 200, mediaList);
-        } catch (Exception e) {
-            e.printStackTrace();
-            JsonResponse.send(exchange, 500, "Internal Server Error: " + e.getMessage());
-        }
-    }
 
     // ===================== DELETE =====================
     public void handleDelete(HttpExchange exchange) throws IOException {
@@ -97,6 +88,39 @@ public class MediaController {
             e.printStackTrace();
             JsonResponse.send(exchange, 500,
                     "Internal Server Error: " + e.getMessage());
+        }
+    }
+
+    // ===================== LIST =====================
+    public void handleList(HttpExchange exchange) throws IOException {
+        try {
+            // Query-Parameter extrahieren
+            String query = exchange.getRequestURI().getQuery();
+            Map<String, String> filters = new HashMap<>();
+
+            if (query != null && !query.isEmpty()) {
+                String[] pairs = query.split("&");
+                for (String pair : pairs) {
+                    String[] keyValue = pair.split("=");
+                    if (keyValue.length == 2) {
+                        filters.put(
+                                java.net.URLDecoder.decode(keyValue[0], StandardCharsets.UTF_8),
+                                java.net.URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8)
+                        );
+                    }
+                }
+            }
+
+            List<Map<String, Object>> mediaList = mediaService.getAllMedia(filters);
+
+            JsonResponse.send(exchange, 200, new Object() {
+                public final List<Map<String, Object>> data = mediaList;
+                public final int count = mediaList.size();
+            });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JsonResponse.send(exchange, 500, "Internal Server Error: " + e.getMessage());
         }
     }
 

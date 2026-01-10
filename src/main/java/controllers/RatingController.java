@@ -15,7 +15,6 @@ public class RatingController {
     private final RatingService ratingService = new RatingService();
 
     // ===================== CREATE =====================
-    // POST /api/media/{id}/ratings
     public void handleCreate(HttpExchange exchange) throws IOException {
 
         if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
@@ -264,4 +263,28 @@ public class RatingController {
             public final int count = ratings.size();
         });
     }
+    // ===================== GET AVERAGE SCORE =====================
+// GET /api/media/{id}/average
+    public void handleGetAverageScore(HttpExchange exchange) throws IOException {
+
+        if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+            JsonResponse.send(exchange, 405, "Method Not Allowed");
+            return;
+        }
+
+        String[] parts = exchange.getRequestURI().getPath().split("/");
+        int mediaId = Integer.parseInt(parts[3]);
+
+        Map<String, Object> averageData = ratingService.getAverageScore(mediaId);
+
+        if (averageData == null) {
+            JsonResponse.send(exchange, 404, new Object() {
+                public final String error = "Media does not exist";
+            });
+            return;
+        }
+
+        JsonResponse.send(exchange, 200, averageData);
+    }
+
 }

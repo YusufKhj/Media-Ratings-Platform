@@ -7,6 +7,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.LinkedHashMap;
 
 public class MediaService {
 
@@ -117,20 +118,140 @@ public class MediaService {
         return false;
     }
 
-    public List<MediaEntry> getAllMedia() {
-        List<MediaEntry> mediaList = new ArrayList<>();
-        String sql = "SELECT * FROM media_entries";
+    public List<Map<String, Object>> getAllMedia(Map<String, String> filters) {
+        List<Map<String, Object>> mediaList = new ArrayList<>();
+
+        // SQL dynamisch aufbauen
+        StringBuilder sql = new StringBuilder("""
+        SELECT 
+            m.uuid,
+            m.title,
+            m.description,
+            m.media_type,
+            m.release_year,
+            m.genres,
+            m.age_restriction,
+            m.creator_id,
+            COALESCE(AVG(r.stars), 0) as average_score,
+            COUNT(r.uuid) as rating_count
+        FROM media_entries m
+        LEFT JOIN ratings r ON m.uuid = r.media_id
+        WHERE 1=1
+    """);
+
+        List<Object> params = new ArrayList<>();
+
+        // Title Filter (Teilstring-Suche, case-insensitive)
+        if (filters.containsKey("title")) {
+            sql.append(" AND LOWER(m.title) LIKE LOWER(?)");
+            params.add("%" + filters.get("title") + "%");
+        }
+
+        // Genre Filter
+        if (filters.containsKey("genre")) {
+            sql.append(" AND ? = ANY(m.genres)");
+            params.add(filters.get("genre"));
+        }
+
+        // Media Type Filter
+        if (filters.containsKey("mediaType")) {
+            sql.append(" AND m.media_type = ?");
+            params.add(filters.get("mediaType"));
+        }
+
+        // Release Year Filter
+        if (filters.containsKey("releaseYear")) {
+            sql.append(" AND m.release_year = ?");
+            params.add(Integer.parseInt(filters.get("releaseYear")));
+        }
+
+        // Age Restriction Filter (maximal diese Altersbeschränkung)
+        if (filters.containsKey("ageRestriction")) {
+            sql.append(" AND m.age_restriction <= ?");
+            params.add(Integer.parseInt(filters.get("ageRestriction")));
+        }
+
+        // GROUP BY für Aggregation
+        sql.append(" GROUP BY m.uuid, m.title, m.description, m.media_type, m.release_year, m.genres, m.age_restriction, m.creator_id");
+
+        // Minimum Rating Filter (nach GROUP BY)
+        if (filters.containsKey("minRating")) {
+            sql.append(" HAVING AVG(r.stars) >= ?");
+            params.add(Double.parseDouble(filters.get("minRating")));
+        }
+
+        // Sortierung
+        String sortBy = filters.getOrDefault("sortBy", "title");
+        String sortOrder = filters.getOrDefault("sortOrder", "asc").toUpperCase();
+
+        switch (sortBy) {
+            case "title":
+                sql.append(" ORDER BY m.title ").append(sortOrder);
+                break;
+            case "releaseYear":
+                sql.append(" ORDER BY m.release_year ").append(sortOrder);
+                break;
+            case "averageScore":
+                sql.append(" ORDER BY average_score ").append(sortOrder);
+                break;
+            default:
+                sql.append(" ORDER BY m.title ASC");
+        }
+
         try (Connection conn = DbUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            // Parameter setzen
+            for (int i = 0; i < params.size(); i++) {
+                Object param = params.get(i);
+                if (param instanceof Integer) {
+                    ps.setInt(i + 1, (Integer) param);
+                } else if (param instanceof Double) {
+                    ps.setDouble(i + 1, (Double) param);
+                } else {
+                    ps.setString(i + 1, param.toString());
+                }
+            }
+
+            ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                mediaList.add(mapResultSetToMedia(rs));
+                Map<String, Object> media = new LinkedHashMap<>();  // LinkedHashMap statt HashMap!
+
+                // Logische Reihenfolge: Basis-Info -> Details -> Ratings
+                media.put("id", rs.getInt("uuid"));
+                media.put("title", rs.getString("title"));
+                media.put("description", rs.getString("description"));
+                media.put("mediaType", rs.getString("media_type"));
+                media.put("releaseYear", rs.getInt("release_year"));
+
+                Array genresArray = rs.getArray("genres");
+                if (genresArray != null) {
+                    media.put("genres", List.of((String[]) genresArray.getArray()));
+                } else {
+                    media.put("genres", new ArrayList<>());
+                }
+
+                media.put("ageRestriction", rs.getInt("age_restriction"));
+                media.put("creatorId", rs.getInt("creator_id"));
+
+                // Rating-Informationen am Ende
+                int ratingCount = rs.getInt("rating_count");
+                if (ratingCount > 0) {
+                    double avgScore = rs.getDouble("average_score");
+                    media.put("averageScore", Math.round(avgScore * 10.0) / 10.0);
+                } else {
+                    media.put("averageScore", 0.0);
+                }
+                media.put("totalRatings", ratingCount);
+
+                mediaList.add(media);
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
         return mediaList;
     }
 

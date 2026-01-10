@@ -122,7 +122,7 @@ public class Router {
             return;
         }
 
-
+        // List User Rating History
         if (path.equals("/api/users/ratings") && method.equals("GET")) {
             ratingController.handleUserHistory(exchange);
             return;
@@ -139,6 +139,13 @@ public class Router {
             recommendationController.handle(exchange);
             return;
         }
+
+        // Get Average Score for Media
+        if (path.matches("/api/media/\\d+/average") && method.equals("GET")) {
+            ratingController.handleGetAverageScore(exchange);
+            return;
+        }
+
         // 404 fallback
         JsonResponse.sendNotFound(exchange);
     }
