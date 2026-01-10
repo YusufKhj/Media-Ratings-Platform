@@ -2,6 +2,7 @@ package utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import java.util.Map;
 
 public class JsonUtil {
     private static final ObjectMapper mapper = new ObjectMapper();
@@ -33,6 +34,14 @@ public class JsonUtil {
             System.out.println("!!!!!!!!!! JSON WRITE FEHLER !!!!!!!!!!");
             e.printStackTrace(System.out);
             throw new RuntimeException("JSON Write Error: " + e.getMessage(), e);
+        }
+    }
+
+    public static Map<String, Object> fromJsonToMap(String json) {
+        try {
+            return mapper.readValue(json, Map.class);
+        } catch (Exception e) {
+            throw new RuntimeException("JSON Parse Error: " + e.getMessage(), e);
         }
     }
 }

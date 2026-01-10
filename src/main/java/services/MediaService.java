@@ -6,6 +6,7 @@ import utils.DbUtil;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class MediaService {
 
@@ -116,6 +117,136 @@ public class MediaService {
         return false;
     }
 
+    public List<MediaEntry> getAllMedia() {
+        List<MediaEntry> mediaList = new ArrayList<>();
+        String sql = "SELECT * FROM media_entries";
+        try (Connection conn = DbUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                mediaList.add(mapResultSetToMedia(rs));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return mediaList;
+    }
+
+    public boolean addFavorite(int mediaId, int userId) {
+        // Erst prüfen ob Media existiert
+        String checkMediaSql = "SELECT uuid FROM media_entries WHERE uuid = ?";
+        try (Connection conn = DbUtil.getConnection();
+             PreparedStatement checkPs = conn.prepareStatement(checkMediaSql)) {
+            checkPs.setInt(1, mediaId);
+            ResultSet rs = checkPs.executeQuery();
+            if (!rs.next()) {
+                System.err.println("ERROR: Media with ID " + mediaId + " does not exist!");
+                return false;
+            }
+        } catch (SQLException e) {
+            System.err.println("ERROR checking if media exists:");
+            e.printStackTrace();
+            return false;
+        }
+
+        // Dann prüfen ob User existiert
+        String checkUserSql = "SELECT uuid FROM users WHERE uuid = ?";
+        try (Connection conn = DbUtil.getConnection();
+             PreparedStatement checkPs = conn.prepareStatement(checkUserSql)) {
+            checkPs.setInt(1, userId);
+            ResultSet rs = checkPs.executeQuery();
+            if (!rs.next()) {
+                System.err.println("ERROR: User with ID " + userId + " does not exist!");
+                return false;
+            }
+        } catch (SQLException e) {
+            System.err.println("ERROR checking if user exists:");
+            e.printStackTrace();
+            return false;
+        }
+
+        // Jetzt Favorite hinzufügen
+        String sql = "INSERT INTO user_favorites (user_id, media_id) VALUES (?, ?) ON CONFLICT DO NOTHING";
+        try (Connection conn = DbUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ps.setInt(2, mediaId);
+            int affected = ps.executeUpdate();
+
+            if (affected == 0) {
+                System.out.println("INFO: Favorite already exists for userId=" + userId + ", mediaId=" + mediaId);
+                return true;
+            }
+
+            System.out.println("SUCCESS: Added favorite - userId=" + userId + ", mediaId=" + mediaId);
+            return true;
+        } catch (SQLException e) {
+            System.err.println("ERROR inserting favorite:");
+            System.err.println("SQL State: " + e.getSQLState());
+            System.err.println("Error Code: " + e.getErrorCode());
+            System.err.println("Message: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public List<Map<String, Object>> getFavorites(int userId) {
+        List<Map<String, Object>> favorites = new ArrayList<>();
+        String sql = "SELECT m.uuid, m.title, m.description, uf.created_at " +
+                     "FROM media_entries m " +
+                     "JOIN user_favorites uf ON m.uuid = uf.media_id " +
+                     "WHERE uf.user_id = ? " +
+                     "ORDER BY uf.created_at DESC"; // optional: neueste zuerst
+
+        try (Connection conn = DbUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                favorites.add(Map.of(
+                    "id", rs.getInt("uuid"),
+                    "title", rs.getString("title"),
+                    "description", rs.getString("description"),
+                    "addedAt", rs.getTimestamp("created_at").toString()
+                ));
+            }
+
+        } catch (Exception e) {
+            System.err.println("ERROR fetching favorites:");
+            e.printStackTrace();
+        }
+
+        return favorites;
+    }
+
+    public boolean removeFavorite(int mediaId, int userId) {
+        String sql = "DELETE FROM user_favorites WHERE user_id = ? AND media_id = ?";
+
+        try (Connection conn = DbUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, userId);
+            ps.setInt(2, mediaId);
+            int affected = ps.executeUpdate();
+
+            if (affected == 0) {
+                System.out.println("INFO: Favorite did not exist for userId=" + userId + ", mediaId=" + mediaId);
+                return false; // Favorite existierte nicht
+            }
+
+            System.out.println("SUCCESS: Removed favorite for userId=" + userId + ", mediaId=" + mediaId);
+            return true;
+
+        } catch (Exception e) {
+            System.err.println("ERROR removing favorite:");
+            e.printStackTrace();
+            return false;
+        }
+    }
 
     // Hilfsmethode
     private MediaEntry mapResultSetToMedia(ResultSet rs) throws SQLException {

@@ -24,4 +24,11 @@ public class JsonResponse {
         exchange.sendResponseHeaders(204, -1);
         exchange.close();
     }
+    public static void sendBadRequest(HttpExchange exchange, String message) throws IOException {
+        var errorResponse = new Object() {
+            public final String error = message;
+        };
+        send(exchange, 400, errorResponse);
+    }
 }
+

@@ -6,7 +6,7 @@ import java.util.Map;
 public class UserManager {
 
     // Simuliert eine Zuordnung Token -> UserId
-    private static final Map<String, Integer> tokenToUserId = new HashMap<>();
+    private static Map<String, Integer> tokenToUserId = new HashMap<>();
 
     // Token beim Login speichern
     public static void addToken(String token, int userId) {

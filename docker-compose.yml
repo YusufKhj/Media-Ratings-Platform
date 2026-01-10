@@ -26,5 +26,6 @@ services:
       DB_USER: mrp_user
       DB_PASS: mrp_pass
 
+
 volumes:
   mrp_data:
