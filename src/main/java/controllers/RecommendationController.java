@@ -2,12 +2,15 @@ package controllers;
 
 import com.sun.net.httpserver.HttpExchange;
 import services.RecommendationService;
+import utils.DbUtil;
 import utils.JsonResponse;
 
 import java.io.IOException;
 import java.util.List;
 
 public class RecommendationController {
+
+    JsonResponse JsonResponse = new JsonResponse();
 
     private final RecommendationService recommendationService = new RecommendationService();
 
