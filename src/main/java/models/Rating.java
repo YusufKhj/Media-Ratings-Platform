@@ -12,7 +12,7 @@ public class Rating {
     private LocalDateTime timestamp;
     private boolean confirmed;
 
-    // --- Getter & Setter ---
+    // Getter & Setter
 
     public void setUserId(int userId) { this.userId = userId; }
     public void setMediaId(int mediaId) { this.mediaId = mediaId; }

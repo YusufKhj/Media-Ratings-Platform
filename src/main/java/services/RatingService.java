@@ -34,7 +34,6 @@ public class RatingService {
             }
 
         } catch (SQLException e) {
-            // UNIQUE(media_id, user_id) verletzt
             if (e.getMessage().contains("unique")) {
                 return -1;
             }

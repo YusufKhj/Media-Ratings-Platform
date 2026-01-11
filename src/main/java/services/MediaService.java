@@ -165,7 +165,7 @@ public class MediaService {
             params.add(Integer.parseInt(filters.get("releaseYear")));
         }
 
-        // Age Restriction Filter (maximal diese Altersbeschränkung)
+        // Age Restriction Filter
         if (filters.containsKey("ageRestriction")) {
             sql.append(" AND m.age_restriction <= ?");
             params.add(Integer.parseInt(filters.get("ageRestriction")));
@@ -174,7 +174,7 @@ public class MediaService {
         // GROUP BY für Aggregation
         sql.append(" GROUP BY m.uuid, m.title, m.description, m.media_type, m.release_year, m.genres, m.age_restriction, m.creator_id");
 
-        // Minimum Rating Filter (nach GROUP BY)
+        // Minimum Rating Filter
         if (filters.containsKey("minRating")) {
             sql.append(" HAVING AVG(r.stars) >= ?");
             params.add(Double.parseDouble(filters.get("minRating")));
@@ -218,7 +218,6 @@ public class MediaService {
             while (rs.next()) {
                 Map<String, Object> media = new LinkedHashMap<>();  // LinkedHashMap statt HashMap!
 
-                // Logische Reihenfolge: Basis-Info -> Details -> Ratings
                 media.put("id", rs.getInt("uuid"));
                 media.put("title", rs.getString("title"));
                 media.put("description", rs.getString("description"));
@@ -235,7 +234,6 @@ public class MediaService {
                 media.put("ageRestriction", rs.getInt("age_restriction"));
                 media.put("creatorId", rs.getInt("creator_id"));
 
-                // Rating-Informationen am Ende
                 int ratingCount = rs.getInt("rating_count");
                 if (ratingCount > 0) {
                     double avgScore = rs.getDouble("average_score");

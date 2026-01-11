@@ -2,7 +2,6 @@ package controllers;
 
 import com.sun.net.httpserver.HttpExchange;
 import services.RecommendationService;
-import utils.DbUtil;
 import utils.JsonResponse;
 
 import java.io.IOException;

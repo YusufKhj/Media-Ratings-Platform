@@ -12,7 +12,7 @@ public class UserController {
 
     private final UserService userService = new UserService();
 
-    // ===================== LOGIN =====================
+    // LOGIN
     public void handleLogin(HttpExchange exchange) throws IOException {
         String requestBody = new String(exchange.getRequestBody().readAllBytes());
 
@@ -33,7 +33,7 @@ public class UserController {
         }
     }
 
-    // ===================== REGISTER =====================
+    // REGISTER
     public void handleRegister(HttpExchange exchange) throws IOException {
         try {
             String requestBody = new String(exchange.getRequestBody().readAllBytes());

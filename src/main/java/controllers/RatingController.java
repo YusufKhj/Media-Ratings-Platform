@@ -14,7 +14,7 @@ public class RatingController {
 
     private final RatingService ratingService = new RatingService();
 
-    // ===================== CREATE =====================
+    // CREATE
     public void handleCreate(HttpExchange exchange) throws IOException {
 
         if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
@@ -59,8 +59,7 @@ public class RatingController {
         });
     }
 
-    // ===================== LIST BY MEDIA =====================
-    // GET /api/media/{id}/ratings
+    // LIST BY MEDIA
     public void handleListByMedia(HttpExchange exchange) throws IOException {
 
         if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
@@ -80,8 +79,7 @@ public class RatingController {
         });
     }
 
-    // ===================== UPDATE =====================
-    // PUT /api/ratings/{id}
+    // UPDATE
     public void handleUpdate(HttpExchange exchange) throws IOException {
 
         if (!"PUT".equalsIgnoreCase(exchange.getRequestMethod())) {
@@ -130,8 +128,7 @@ public class RatingController {
         });
     }
 
-    // ===================== DELETE =====================
-    // DELETE /api/ratings/{id}
+    // DELETE
     public void handleDelete(HttpExchange exchange) {
         try {
             String[] parts = exchange.getRequestURI().getPath().split("/");
@@ -170,8 +167,7 @@ public class RatingController {
         }
     }
 
-    // ===================== CONFIRM =====================
-    // POST /api/ratings/{id}/confirm
+    // CONFIRM
     public void handleConfirm(HttpExchange exchange) throws IOException {
 
         if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
@@ -208,8 +204,7 @@ public class RatingController {
         });
     }
 
-    // ===================== LIKE =====================
-    // POST /api/ratings/{id}/like
+    // LIKE
     public void handleLike(HttpExchange exchange) throws IOException {
 
         if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
@@ -243,8 +238,7 @@ public class RatingController {
         });
     }
 
-    // ===================== USER HISTORY =====================
-    // GET /api/ratings/history
+    // USER HISTORY
     public void handleUserHistory(HttpExchange exchange) throws IOException {
 
         if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
@@ -263,8 +257,7 @@ public class RatingController {
             public final int count = ratings.size();
         });
     }
-    // ===================== GET AVERAGE SCORE =====================
-// GET /api/media/{id}/average
+    // GET AVERAGE SCORE
     public void handleGetAverageScore(HttpExchange exchange) throws IOException {
 
         if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {

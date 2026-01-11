@@ -17,7 +17,7 @@ public class MediaController {
 
     private final MediaService mediaService = new MediaService();
 
-    // ===================== CREATE =====================
+    // CREATE
     public void handleCreate(HttpExchange exchange) throws IOException {
         String requestBody = new String(exchange.getRequestBody().readAllBytes());
         MediaEntry media = JsonUtil.fromJson(requestBody, MediaEntry.class);
@@ -27,7 +27,7 @@ public class MediaController {
     }
 
 
-    // ===================== DELETE =====================
+    // DELETE
     public void handleDelete(HttpExchange exchange) throws IOException {
         try {
             String path = exchange.getRequestURI().getPath();
@@ -55,7 +55,7 @@ public class MediaController {
         }
     }
 
-    // ===================== UPDATE =====================
+    // UPDATE
     public void handleUpdate(HttpExchange exchange) throws IOException {
         try {
             String path = exchange.getRequestURI().getPath();
@@ -91,7 +91,7 @@ public class MediaController {
         }
     }
 
-    // ===================== LIST =====================
+    // LIST
     public void handleList(HttpExchange exchange) throws IOException {
         try {
             // Query-Parameter extrahieren
@@ -124,7 +124,7 @@ public class MediaController {
         }
     }
 
-    // ===================== ADD FAVORITE =====================
+    // ADD FAVORITE
     public void handleAddFavorite(HttpExchange exchange) throws IOException {
         try {
             String path = exchange.getRequestURI().getPath();
@@ -172,7 +172,7 @@ public class MediaController {
         }
     }
 
-    // ===================== REMOVE FAVORITE =====================
+    // REMOVE FAVORITE
     public void handleRemoveFavorite(HttpExchange exchange) throws IOException {
         try {
             if (!"DELETE".equalsIgnoreCase(exchange.getRequestMethod())) {
@@ -214,7 +214,7 @@ public class MediaController {
         }
     }
 
-    // ===================== GET FAVORITES =====================
+    // GET FAVORITES
     public void handleGetFavorites(HttpExchange exchange) throws IOException {
         try {
             String authHeader = exchange.getRequestHeaders()
